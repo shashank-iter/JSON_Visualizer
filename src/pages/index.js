@@ -137,8 +137,8 @@ export default function App() {
 
   return (
     <>
-      <div className="p-10">
-        <div className="my-5 px-10">
+      <div className="p-5">
+        <div className="my-5 F">
           <h1 className="text-2xl font-bold mb-5">JSON Visualizer 💖</h1>
           <h2>Aapka Apna, Sasta, Sundar aur Tikau - JSON स्पष्टीकरण यंत्र</h2>
           <code className="mt-2">
@@ -147,11 +147,12 @@ export default function App() {
           </code>
         </div>
         <div className="md:flex md:flex-row md:h-screen flex flex-col">
-          <div className="md:w-1/2 h-screen md:px-10 px-5 ">
+          <div className="md:w-1/2 h-96 md:px-10  mb-5 md:mb-0">
             {/* input section for json */}
             <textarea
-              className="w-full md:h-screen bg-black text-green-600 rounded-md p-2"
+              className="w-full md:h-screen bg-black text-green-600 rounded-md p-2 h-96 "
               value={json}
+              placeholder="Paste your JSON here"
               onChange={(e) => {
                 setJson(e.target.value);
                 try {
@@ -173,7 +174,7 @@ export default function App() {
               }}
             ></textarea>
           </div>
-          <div className="md:w-1/2 md:h-screen w-full">
+          <div className=" h-[80vw] w-[90vw] md:w-1/2 md:h-screen ">
             {/* <button
           onClick={() => {
             createNodesAndEdgesFromJson(json);
