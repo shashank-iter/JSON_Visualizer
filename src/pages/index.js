@@ -34,7 +34,8 @@ export default function App() {
     const nodes = [];
     const edges = [];
     const queue = [{ data: json, parent: null, level: 0, dataKey: null }];
-    let id = 0;
+    let nodeCounter = 0;
+    let edgeCounter = 0;
 
     const levelSpacing = 200; // Vertical spacing between levels
     const nodeSpacing = 150; // Horizontal spacing between nodes within the same level
@@ -43,7 +44,7 @@ export default function App() {
 
     while (queue.length > 0) {
       const { data, parent, level, dataKey } = queue.shift();
-      const nodeId = id++;
+      const nodeId = `node-${nodeCounter++}`; // Unique node id
 
       // Initialize x-position for the current level if not already done
       if (!positionMap.has(level)) {
@@ -55,7 +56,7 @@ export default function App() {
 
       // Add current node
       nodes.push({
-        id: nodeId.toString(),
+        id: nodeId,
         position: { x: xpos, y: ypos },
         data: {
           label: parent === null ? "JSON Object" : dataKey,
@@ -76,57 +77,66 @@ export default function App() {
       // If there's a parent node, add an edge
       if (parent !== null) {
         edges.push({
-          id: `${parent}-${nodeId}`,
-          source: parent.toString(),
-          target: nodeId.toString(),
+          id: `edge-${edgeCounter++}-{parent}-${nodeId}`,
+          source: parent,
+          target: nodeId,
         });
       }
-      let hasPrimitives = false;
-      let primitiveLabel = "";
-      let goIntoSetNodeFlag = false;
-      // Add children to the queue if they are objects, or create leaf nodes for primitive values
-      for (const key in data) {
-        const childNodeId = id++;
-        if (typeof data[key] === "object") {
+
+      const childNodeId = `node-${nodeCounter++}`; // Unique child node id
+
+      // Add children to the queue based on the type of data
+      if (Array.isArray(data)) {
+        data.forEach((item, index) => {
+          queue.push({
+            data: item,
+            parent: nodeId,
+            level: level + 1,
+            dataKey: `Index ${index}`,
+          });
+          edges.push({
+            id: `edge-${edgeCounter++}-${nodeId}`,
+            source: nodeId,
+            target: childNodeId,
+          });
+        });
+      } else if (typeof data === "object") {
+        for (const key in data) {
           queue.push({
             data: data[key],
             parent: nodeId,
             level: level + 1,
             dataKey: key,
           });
-        } else {
-          if (!hasPrimitives) {
-            for (const key in data) {
-              if (typeof data[key] !== "object") {
-                primitiveLabel += `${key}: ${data[key]}` + ", ";
-                hasPrimitives = true;
-              }
-              goIntoSetNodeFlag = true;
-            }
-          }
-          if (goIntoSetNodeFlag) {
-            nodes.push({
-              id: childNodeId.toString(),
-              position: { x: xpos + 500, y: ypos + (levelSpacing - 150) + 50 },
-              data: {
-                label: primitiveLabel,
-              },
-              style: {
-                marginBottom: "100px",
-                borderRadius: "10px",
-                padding: "10px",
-                backgroundColor: "lightblue",
-                overflowWrap: "break-word",
-              },
-            });
-            edges.push({
-              id: `${nodeId}-${childNodeId}`,
-              source: nodeId.toString(),
-              target: childNodeId.toString(),
-            });
-            goIntoSetNodeFlag = false;
-          }
+          edges.push({
+            id: `edge-${edgeCounter++}-${nodeId}`,
+            source: nodeId,
+            target: childNodeId,
+          });
         }
+      } else {
+        // Handle leaf nodes for primitive values
+        // redefine nodeId to prevent duplicate ids
+        const nodeId = `node-${nodeCounter++}`;
+        nodes.push({
+          id: nodeId,
+          position: { x: xpos + 150, y: ypos + (levelSpacing - 150) + 50 },
+          data: {
+            label: `${dataKey}: ${data}`,
+          },
+          style: {
+            marginBottom: "100px",
+            borderRadius: "10px",
+            padding: "10px",
+            backgroundColor: "lightblue",
+            overflowWrap: "break-word",
+          },
+        });
+        edges.push({
+          id: `edge-${edgeCounter++}-${parent}-${nodeId}`,
+          source: parent,
+          target: nodeId,
+        });
       }
     }
 
